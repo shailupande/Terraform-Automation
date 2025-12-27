@@ -14,6 +14,7 @@ resource "aws_vpc" "main" {
 resource "aws_security_group" "jenkins-sg-2022" {
   name        = var.security_group
   description = "security group for Ec2 instance"
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     from_port   = 8080
@@ -42,11 +43,55 @@ resource "aws_security_group" "jenkins-sg-2022" {
   }
 }
 
+resource "aws_subnet" "public" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "172.16.1.0/24"
+  map_public_ip_on_launch = true
+  tags = {
+    Name = "public-subnet"
+  }
+}
+
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.main.id
+  tags = {
+    Name = "main-igw"
+  }
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+
+  tags = {
+    Name = "public-rt"
+  }
+}
+
+resource "aws_route_table_association" "public_assoc" {
+  subnet_id      = aws_subnet.public.id
+  route_table_id = aws_route_table.public.id
+}
+
 resource "aws_instance" "myFirstInstance" {
-  ami           = var.ami_id
-  key_name = var.key_name
-  instance_type = var.instance_type
+  ami                    = var.ami_id
+  key_name               = var.key_name
+  instance_type          = var.instance_type
+  subnet_id              = aws_subnet.public.id
+  associate_public_ip_address = true
   vpc_security_group_ids = [aws_security_group.jenkins-sg-2022.id]
+
+  user_data = <<-EOF
+              #!/bin/bash
+              apt-get update -y
+              apt-get install -y nginx
+              systemctl enable nginx
+              systemctl start nginx
+              EOF
 
   # Set root volume size to 20 GB
   root_block_device {
@@ -55,17 +100,21 @@ resource "aws_instance" "myFirstInstance" {
     delete_on_termination = true
   }
 
-  tags= {
+  tags = {
     Name = var.tag_name
   }
 }
 
-# Create Elastic IP address
-resource "aws_eip" "myFirstInstance" {
- // vpc      = true
-  instance = aws_instance.myFirstInstance.id
-tags= {
+# Allocate an Elastic IP for the instance (VPC)
+resource "aws_eip" "myFirstEip" {
+  vpc = true
+  tags = {
     Name = "my_elastic_ip"
   }
+}
+
+resource "aws_eip_association" "eip_assoc" {
+  instance_id   = aws_instance.myFirstInstance.id
+  allocation_id = aws_eip.myFirstEip.id
 }
 
