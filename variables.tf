@@ -55,3 +55,9 @@ variable "public_key" {
     type        = string
     default     = ""
 }
+
+variable "public_key_path" {
+    description = "(Optional) Path to a public key file to use for creating the AWS key pair. If set, Terraform will read the file contents."
+    type        = string
+    default     = ""
+}

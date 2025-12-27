@@ -4,9 +4,9 @@ provider "aws" {
 
 # Optional: create key pair in AWS when public key material is provided
 resource "aws_key_pair" "deployer" {
-  count    = var.public_key != "" ? 1 : 0
+  count    = (var.public_key != "" || var.public_key_path != "") ? 1 : 0
   key_name = var.key_name
-  public_key = var.public_key
+  public_key = var.public_key != "" ? var.public_key : file(var.public_key_path)
 }
 
 resource "aws_vpc" "main" {
