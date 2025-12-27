@@ -2,6 +2,13 @@ provider "aws" {
   region = var.aws_region
 }
 
+# Optional: create key pair in AWS when public key material is provided
+resource "aws_key_pair" "deployer" {
+  count    = var.public_key != "" ? 1 : 0
+  key_name = var.key_name
+  public_key = var.public_key
+}
+
 resource "aws_vpc" "main" {
   cidr_block = "172.16.0.0/16"
   instance_tenancy = "default"

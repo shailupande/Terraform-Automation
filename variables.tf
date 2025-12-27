@@ -5,7 +5,7 @@ variable "aws_region" {
 
 variable "key_name" { 
     description = " SSH keys to connect to ec2 instance" 
-    default     =  "linux" 
+    default     =  "linux1" 
 }
 
 variable "instance_type" { 
@@ -48,4 +48,10 @@ variable "tags" {
         environment = "DEV"
         terraform   = "true"
     }
+}
+
+variable "public_key" {
+    description = "(Optional) Public key material for creating an AWS key pair. If empty, Terraform won't create a key pair and you must have a key with the name in `key_name` already in AWS."
+    type        = string
+    default     = ""
 }
