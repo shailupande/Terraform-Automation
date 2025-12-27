@@ -114,7 +114,6 @@ resource "aws_instance" "myFirstInstance" {
 
 # Allocate an Elastic IP for the instance (VPC)
 resource "aws_eip" "myFirstEip" {
-  vpc = true
   tags = {
     Name = "my_elastic_ip"
   }

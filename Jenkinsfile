@@ -3,14 +3,9 @@ pipeline {
 
     parameters {
         choice(
-            name: 'BRANCH_CHOICE',
-            choices: ['main', 'develop', 'feature/example', 'Other'],
-            description: 'Select a branch from the common list (use override for custom branch)'
-        )
-        string(
-            name: 'BRANCH_OVERRIDE',
-            defaultValue: '',
-            description: 'If set, this branch name will override BRANCH_CHOICE'
+            name: 'BRANCH',
+            choices: ['main', 'develop', 'feature/example', 'shailesh'],
+            description: 'Select the branch to build'
         )
         choice(
             name: 'ACTION',
@@ -22,7 +17,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
-                    def branchToUse = (params.BRANCH_OVERRIDE?.trim()) ? params.BRANCH_OVERRIDE.trim() : params.BRANCH_CHOICE
+                    def branchToUse = params.BRANCH
                     echo "Checking out branch: ${branchToUse}"
                     git branch: branchToUse, url: 'https://github.com/shailupande/Terraform-Automation.git'
                 }
